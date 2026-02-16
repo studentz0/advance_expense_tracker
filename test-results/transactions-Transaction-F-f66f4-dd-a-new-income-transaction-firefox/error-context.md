@@ -1,0 +1,147 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - link "FinanceApp" [ref=e5] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e7]
+        - generic [ref=e10]: FinanceApp
+      - navigation [ref=e11]:
+        - link "Overview" [ref=e12] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e13]
+          - generic [ref=e18]: Overview
+          - img [ref=e19]
+        - link "Transactions" [ref=e21] [cursor=pointer]:
+          - /url: /dashboard/transactions
+          - img [ref=e22]
+          - generic [ref=e26]: Transactions
+          - img [ref=e27]
+        - link "Categories" [ref=e29] [cursor=pointer]:
+          - /url: /dashboard/categories
+          - img [ref=e30]
+          - generic [ref=e34]: Categories
+          - img [ref=e35]
+        - link "Budgets" [ref=e37] [cursor=pointer]:
+          - /url: /dashboard/budgets
+          - img [ref=e38]
+          - generic [ref=e41]: Budgets
+          - img [ref=e42]
+        - link "Settings" [ref=e44] [cursor=pointer]:
+          - /url: /dashboard/settings
+          - img [ref=e45]
+          - generic [ref=e48]: Settings
+          - img [ref=e49]
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - generic [ref=e53]: a
+          - generic [ref=e54]:
+            - paragraph [ref=e55]: aliarkhamnight2019
+            - paragraph [ref=e56]: aliarkhamnight2019@gmail.com
+        - button "Sign Out" [ref=e58]:
+          - img [ref=e59]
+          - generic [ref=e63]: Sign Out
+    - main [ref=e64]:
+      - generic [ref=e66]:
+        - generic [ref=e68]:
+          - heading "Transactions" [level=1] [ref=e69]
+          - paragraph [ref=e70]: Detailed history of your finances
+        - generic [ref=e71]:
+          - generic [ref=e72]:
+            - heading "New Transaction" [level=2] [ref=e73]:
+              - img [ref=e74]
+              - text: New Transaction
+            - generic [ref=e77]:
+              - generic [ref=e78]:
+                - generic [ref=e79]: Amount
+                - generic [ref=e80]:
+                  - generic [ref=e81]: $
+                  - spinbutton [ref=e82]: "1000"
+              - generic [ref=e83]:
+                - generic [ref=e84]: Description
+                - textbox "e.g. Weekly Groceries" [active] [ref=e85]: Test Income 1771238208683
+              - generic [ref=e86]:
+                - generic [ref=e87]:
+                  - generic [ref=e88]: Type
+                  - combobox [ref=e89]:
+                    - option "Expense" [selected]
+                    - option "Income"
+                - generic [ref=e90]:
+                  - generic [ref=e91]: Category
+                  - combobox [ref=e92]:
+                    - option "banaras" [selected]
+                    - option "Entertainment"
+                    - option "Food & Dining"
+                    - option "Gift"
+                    - option "Health"
+                    - option "Housing"
+                    - option "Investment"
+                    - option "Salary"
+                    - option "Shopping"
+                    - option "Transportation"
+                    - option "Utilities"
+              - generic [ref=e93]:
+                - generic [ref=e94]: Date
+                - textbox [ref=e95]: 2026-02-16
+              - button "Add Transaction" [ref=e96]
+          - generic [ref=e98]:
+            - generic [ref=e99]:
+              - generic [ref=e100]:
+                - img [ref=e101]
+                - textbox "Search transactions..." [ref=e104]
+              - generic [ref=e105]:
+                - img [ref=e106]
+                - combobox [ref=e108]:
+                  - option "All Types" [selected]
+                  - option "Expenses"
+                  - option "Income"
+            - generic [ref=e109]:
+              - generic [ref=e110]:
+                - heading "Transaction History" [level=2] [ref=e111]
+                - generic [ref=e112]: 3 Shown
+              - generic [ref=e113]:
+                - generic [ref=e114]:
+                  - img [ref=e116]
+                  - generic [ref=e120]:
+                    - generic [ref=e121]:
+                      - paragraph [ref=e122]: banaras
+                      - generic [ref=e123]: Food & Dining
+                    - generic [ref=e125]:
+                      - img [ref=e126]
+                      - text: 2/15/2026
+                  - generic [ref=e131]:
+                    - generic [ref=e132]: "-$1,500"
+                    - button [ref=e134]:
+                      - img [ref=e135]
+                - generic [ref=e141]:
+                  - img [ref=e143]
+                  - generic [ref=e147]:
+                    - generic [ref=e148]:
+                      - paragraph [ref=e149]: No description
+                      - generic [ref=e150]: banaras
+                    - generic [ref=e152]:
+                      - img [ref=e153]
+                      - text: 2/15/2026
+                  - generic [ref=e158]:
+                    - generic [ref=e159]: "-$20,000"
+                    - button [ref=e161]:
+                      - img [ref=e162]
+                - generic [ref=e168]:
+                  - img [ref=e170]
+                  - generic [ref=e174]:
+                    - generic [ref=e175]:
+                      - paragraph [ref=e176]: No description
+                      - generic [ref=e177]: banaras
+                    - generic [ref=e179]:
+                      - img [ref=e180]
+                      - text: 2/15/2026
+                  - generic [ref=e185]:
+                    - generic [ref=e186]: "-$2,000"
+                    - button [ref=e188]:
+                      - img [ref=e189]
+  - button "Open Next.js Dev Tools" [ref=e200] [cursor=pointer]:
+    - img [ref=e201]
+  - alert [ref=e205]
+```
