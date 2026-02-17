@@ -1,55 +1,62 @@
-import { createClient } from '@/utils/supabase/server'
-import { Wallet, Target, AlertCircle } from 'lucide-react'
-import { revalidatePath } from 'next/cache'
+'use client'
 
-export default async function BudgetsPage() {
-  const supabase = await createClient()
-  
-  // Fetch budget status from our new view
-  const { data: budgetsRaw } = await supabase
-    .from('budget_status')
-    .select('*')
+import { createClient } from '@/utils/supabase/client'
+import { Wallet, Target, AlertCircle, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-  interface BudgetStatus {
-    id: string
-    category_name: string
-    category_color: string | null
-    limit_amount: number
-    spent_amount: number
-    remaining_amount: number
-    progress_percentage: number
+export default function BudgetsPage() {
+  const supabase = createClient()
+  const [budgets, setBudgets] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  async function fetchData() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: b } = await supabase
+        .from('budget_status')
+        .select('*')
+
+      const { data: c } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('type', 'expense')
+        .order('name')
+
+      setBudgets(b || [])
+      setCategories(c || [])
+    }
+    setLoading(false)
   }
 
-  const budgets = (budgetsRaw || []) as unknown as BudgetStatus[]
+  useEffect(() => {
+    fetchData()
+  }, [])
 
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('type', 'expense')
-    .order('name')
-
-  async function setBudget(formData: FormData) {
-    'use server'
+  async function handleSetBudget(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setSaving(true)
+    const formData = new FormData(e.currentTarget)
     const category_id = formData.get('category_id') as string
-    const limit_amount = formData.get('limit_amount')
+    const limit_amount = Number(formData.get('limit_amount'))
     
-    const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
-      const { error } = await supabase.from('budgets').upsert({
+      await supabase.from('budgets').upsert({
         user_id: user.id,
         category_id,
-        limit_amount: Number(limit_amount),
+        limit_amount,
         period: 'monthly'
       }, { onConflict: 'user_id,category_id,period' })
-
-      if (!error) {
-        revalidatePath('/dashboard/budgets')
-        revalidatePath('/dashboard')
-      }
+      
+      fetchData()
     }
+    setSaving(false)
   }
+
+  if (loading) return <div className="p-8 text-center">Loading budgets...</div>
 
   return (
     <div className="space-y-8">
@@ -59,13 +66,12 @@ export default async function BudgetsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Set Budget Form */}
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm h-fit">
           <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
             <Target className="w-5 h-5 text-blue-600" />
             Set Budget
           </h2>
-          <form action={setBudget} className="space-y-4">
+          <form onSubmit={handleSetBudget} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5">Category</label>
               <select
@@ -73,7 +79,7 @@ export default async function BudgetsPage() {
                 required
                 className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
               >
-                {categories?.map((cat) => (
+                {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
@@ -94,9 +100,10 @@ export default async function BudgetsPage() {
             </div>
             <button
               type="submit"
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition"
+              disabled={saving}
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2"
             >
-              Save Budget
+              {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Budget'}
             </button>
           </form>
         </div>

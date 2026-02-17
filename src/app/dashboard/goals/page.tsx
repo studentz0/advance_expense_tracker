@@ -1,16 +1,55 @@
-import { createClient } from '@/utils/supabase/server'
-import { Target, Plus, TrendingUp } from 'lucide-react'
-import { addSavingsGoal, updateGoalProgress } from '@/app/actions/finance'
+'use client'
 
-export default async function GoalsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+import { createClient } from '@/utils/supabase/client'
+import { Target, Plus, TrendingUp, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { addSavingsGoalClient, updateGoalProgressClient } from '@/utils/finance-client'
 
-  const { data: goals } = await supabase
-    .from('savings_goals')
-    .select('*')
-    .eq('user_id', user?.id)
-    .order('created_at', { ascending: false })
+export default function GoalsPage() {
+  const supabase = createClient()
+  const [goals, setGoals] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [adding, setAdding] = useState(false)
+
+  async function fetchGoals() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data } = await supabase
+        .from('savings_goals')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+      setGoals(data || [])
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchGoals()
+  }, [])
+
+  async function handleAddGoal(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setAdding(true)
+    const formData = new FormData(e.currentTarget)
+    const name = formData.get('name') as string
+    const target = Number(formData.get('target_amount'))
+    const deadline = formData.get('deadline') as string
+
+    const res = await addSavingsGoalClient(name, target, deadline)
+    if (res.success) {
+      fetchGoals()
+      e.currentTarget.reset()
+    }
+    setAdding(false)
+  }
+
+  async function handleUpdateProgress(id: string, amount: number) {
+    const res = await updateGoalProgressClient(id, amount)
+    if (res.success) fetchGoals()
+  }
+
+  if (loading) return <div className="p-8 text-center">Loading goals...</div>
 
   return (
     <div className="space-y-8">
@@ -25,10 +64,7 @@ export default async function GoalsPage() {
             <Plus className="w-5 h-5 text-blue-600" />
             New Goal
           </h2>
-          <form action={async (formData) => {
-            'use server'
-            await addSavingsGoal(formData)
-          }} className="space-y-4">
+          <form onSubmit={handleAddGoal} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5">Goal Name</label>
               <input
@@ -61,15 +97,16 @@ export default async function GoalsPage() {
             </div>
             <button
               type="submit"
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition"
+              disabled={adding}
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2"
             >
-              Create Goal
+              {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Goal'}
             </button>
           </form>
         </div>
 
         <div className="lg:col-span-2 space-y-6">
-          {goals && goals.length > 0 ? (
+          {goals.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {goals.map((goal) => {
                 const progress = Math.min((goal.current_amount / goal.target_amount) * 100, 100)
@@ -103,22 +140,18 @@ export default async function GoalsPage() {
                     </div>
 
                     <div className="flex gap-2">
-                      <form action={async () => {
-                        'use server'
-                        await updateGoalProgress(goal.id, 10)
-                      }} className="flex-1">
-                        <button className="w-full py-2 bg-gray-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-600 dark:text-zinc-400 hover:text-blue-600 font-semibold rounded-lg text-xs transition border border-gray-100 dark:border-zinc-700">
-                          Add $10
-                        </button>
-                      </form>
-                      <form action={async () => {
-                        'use server'
-                        await updateGoalProgress(goal.id, 100)
-                      }} className="flex-1">
-                        <button className="w-full py-2 bg-gray-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-600 dark:text-zinc-400 hover:text-blue-600 font-semibold rounded-lg text-xs transition border border-gray-100 dark:border-zinc-700">
-                          Add $100
-                        </button>
-                      </form>
+                      <button 
+                        onClick={() => handleUpdateProgress(goal.id, 10)}
+                        className="flex-1 py-2 bg-gray-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-600 dark:text-zinc-400 hover:text-blue-600 font-semibold rounded-lg text-xs transition border border-gray-100 dark:border-zinc-700"
+                      >
+                        Add $10
+                      </button>
+                      <button 
+                        onClick={() => handleUpdateProgress(goal.id, 100)}
+                        className="flex-1 py-2 bg-gray-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-600 dark:text-zinc-400 hover:text-blue-600 font-semibold rounded-lg text-xs transition border border-gray-100 dark:border-zinc-700"
+                      >
+                        Add $100
+                      </button>
                     </div>
                   </div>
                 )

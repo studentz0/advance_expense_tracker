@@ -1,29 +1,56 @@
 'use client'
 
-import { exportTransactionsToCSV } from '@/app/actions/finance'
+import { createClient } from '@/utils/supabase/client'
 import { Download, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 
 export default function ExportButton() {
   const [loading, setLoading] = useState(false)
+  const supabase = createClient()
 
   const handleExport = async () => {
     setLoading(true)
-    const result = await exportTransactionsToCSV()
+    const { data: { user } } = await supabase.auth.getUser()
     
-    if (result.success && result.csv) {
-      const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8;' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.setAttribute('href', url)
-      link.setAttribute('download', `transactions_${new Date().toISOString().split('T')[0]}.csv`)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    } else {
-      alert(result.error || 'Failed to export')
+    if (!user) {
+      alert('Not authenticated')
+      setLoading(false)
+      return
     }
+
+    const { data: transactions, error } = await supabase
+      .from('transactions')
+      .select('date, type, amount, description, categories(name)')
+      .eq('user_id', user.id)
+      .order('date', { ascending: false })
+
+    if (error || !transactions) {
+      alert(error?.message || 'Failed to fetch')
+      setLoading(false)
+      return
+    }
+
+    const headers = ['Date', 'Type', 'Amount', 'Description', 'Category']
+    const rows = transactions.map(t => [
+      t.date,
+      t.type,
+      t.amount,
+      `"${t.description || ''}"`,
+      `"${(t.categories as any)?.name || 'Uncategorized'}"`
+    ])
+
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `transactions_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
     setLoading(false)
   }
 

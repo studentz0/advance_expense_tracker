@@ -1,30 +1,68 @@
-import { createClient } from '@/utils/supabase/server'
-import { Clock, Plus, Trash2, Calendar } from 'lucide-react'
-import { addRecurringTransaction } from '@/app/actions/finance'
-import { revalidatePath } from 'next/cache'
+'use client'
 
-export default async function RecurringPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+import { createClient } from '@/utils/supabase/client'
+import { Clock, Plus, Trash2, Calendar, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { addRecurringTransactionClient } from '@/utils/finance-client'
 
-  const { data: recurring } = await supabase
-    .from('recurring_transactions')
-    .select('*, categories(name, icon, color)')
-    .eq('user_id', user?.id)
-    .order('created_at', { ascending: false })
+export default function RecurringPage() {
+  const supabase = createClient()
+  const [recurring, setRecurring] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [adding, setAdding] = useState(false)
 
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name')
+  async function fetchData() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: rec } = await supabase
+        .from('recurring_transactions')
+        .select('*, categories(name, icon, color)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
 
-  async function deleteRecurring(formData: FormData) {
-    'use server'
-    const id = formData.get('id') as string
-    const supabase = await createClient()
-    await supabase.from('recurring_transactions').delete().eq('id', id)
-    revalidatePath('/dashboard/recurring')
+      const { data: cats } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name')
+
+      setRecurring(rec || [])
+      setCategories(cats || [])
+    }
+    setLoading(false)
   }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  async function handleAddSchedule(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setAdding(true)
+    const formData = new FormData(e.currentTarget)
+    const data = {
+      amount: Number(formData.get('amount')),
+      description: formData.get('description'),
+      category_id: formData.get('category_id'),
+      type: formData.get('type'),
+      frequency: formData.get('frequency'),
+      start_date: formData.get('start_date')
+    }
+
+    const res = await addRecurringTransactionClient(data)
+    if (res.success) {
+      fetchData()
+      e.currentTarget.reset()
+    }
+    setAdding(false)
+  }
+
+  async function handleDelete(id: string) {
+    const { error } = await supabase.from('recurring_transactions').delete().eq('id', id)
+    if (!error) fetchData()
+  }
+
+  if (loading) return <div className="p-8 text-center">Loading schedules...</div>
 
   return (
     <div className="space-y-8">
@@ -39,10 +77,7 @@ export default async function RecurringPage() {
             <Plus className="w-5 h-5 text-blue-600" />
             New Schedule
           </h2>
-          <form action={async (formData) => {
-            'use server'
-            await addRecurringTransaction(formData)
-          }} className="space-y-4">
+          <form onSubmit={handleAddSchedule} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5">Amount</label>
               <div className="relative">
@@ -97,7 +132,7 @@ export default async function RecurringPage() {
                 required
                 className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
               >
-                {categories?.map((cat) => (
+                {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
@@ -114,15 +149,16 @@ export default async function RecurringPage() {
             </div>
             <button
               type="submit"
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition"
+              disabled={adding}
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2"
             >
-              Start Schedule
+              {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Start Schedule'}
             </button>
           </form>
         </div>
 
         <div className="lg:col-span-2 space-y-4">
-          {recurring && recurring.length > 0 ? (
+          {recurring.length > 0 ? (
             <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-gray-100 dark:border-zinc-800">
                 <h2 className="font-bold text-gray-900 dark:text-white">Active Schedules</h2>
@@ -148,7 +184,7 @@ export default async function RecurringPage() {
                       <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          Next: {new Date(item.next_execution_date).toLocaleDateString('en-US')}
+                          <span suppressHydrationWarning>Next: {new Date(item.next_execution_date).toLocaleDateString('en-US')}</span>
                         </div>
                       </div>
                     </div>
@@ -156,15 +192,12 @@ export default async function RecurringPage() {
                       <div className={`text-sm font-bold ${item.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                         {item.type === 'income' ? '+' : '-'}${Number(item.amount).toLocaleString()}
                       </div>
-                      <form action={deleteRecurring}>
-                        <input type="hidden" name="id" value={item.id} />
-                        <button 
-                          type="submit"
-                          className="p-2 text-gray-300 hover:text-red-600 transition opacity-0 group-hover:opacity-100"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </form>
+                      <button 
+                        onClick={() => handleDelete(item.id)}
+                        className="p-2 text-gray-300 hover:text-red-600 transition opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 ))}

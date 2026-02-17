@@ -1,25 +1,43 @@
-import { createClient } from '@/utils/supabase/server'
-import { Plus } from 'lucide-react'
-import { revalidatePath } from 'next/cache'
+'use client'
+
+import { createClient } from '@/utils/supabase/client'
+import { Plus, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import TransactionList from './_components/TransactionList'
 import ExportButton from './_components/ExportButton'
 
-export default async function TransactionsPage() {
-  const supabase = await createClient()
-  await supabase.auth.getUser()
+export default function TransactionsPage() {
+  const supabase = createClient()
+  const [transactions, setTransactions] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [adding, setAdding] = useState(false)
 
-  const { data: transactions } = await supabase
-    .from('transactions')
-    .select('*, categories(name, icon, color)')
-    .order('date', { ascending: false })
+  async function fetchData() {
+    const { data: trans } = await supabase
+      .from('transactions')
+      .select('*, categories(name, icon, color)')
+      .order('date', { ascending: false })
 
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name')
+    const { data: cats } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name')
 
-  async function addTransaction(formData: FormData) {
-    'use server'
+    setTransactions(trans || [])
+    setCategories(cats || [])
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  async function handleAddTransaction(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setAdding(true)
+    const formData = new FormData(e.currentTarget)
+    
     const amount = formData.get('amount')
     const description = formData.get('description') as string
     const category_id = formData.get('category_id') as string
@@ -27,9 +45,6 @@ export default async function TransactionsPage() {
     const type = formData.get('type') as 'income' | 'expense'
     const receiptFile = formData.get('receipt') as File
     
-    if (!amount || Number(amount) <= 0) return
-
-    const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
@@ -39,7 +54,7 @@ export default async function TransactionsPage() {
         const fileExt = receiptFile.name.split('.').pop()
         const fileName = `${user.id}/${Date.now()}.${fileExt}`
         
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('receipts')
           .upload(fileName, receiptFile)
 
@@ -59,27 +74,26 @@ export default async function TransactionsPage() {
       })
       
       if (!error) {
-        revalidatePath('/dashboard/transactions')
-        revalidatePath('/dashboard')
+        fetchData()
+        e.currentTarget.reset()
       }
     }
+    setAdding(false)
   }
 
-  async function deleteTransaction(formData: FormData) {
-    'use server'
+  async function handleDeleteTransaction(formData: FormData) {
     const id = formData.get('id') as string
-    const supabase = await createClient()
-    
     const { error } = await supabase
       .from('transactions')
       .delete()
       .eq('id', id)
 
     if (!error) {
-      revalidatePath('/dashboard/transactions')
-      revalidatePath('/dashboard')
+      fetchData()
     }
   }
+
+  if (loading) return <div className="p-8 text-center">Loading transactions...</div>
 
   return (
     <div className="space-y-8">
@@ -92,13 +106,12 @@ export default async function TransactionsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Add Transaction Form */}
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm h-fit">
           <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
             <Plus className="w-5 h-5 text-blue-600" />
             New Transaction
           </h2>
-          <form action={addTransaction} className="space-y-4">
+          <form onSubmit={handleAddTransaction} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5">Amount</label>
               <div className="relative">
@@ -139,7 +152,7 @@ export default async function TransactionsPage() {
                   required
                   className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
                 >
-                  {categories?.map((cat) => (
+                  {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>
@@ -166,18 +179,18 @@ export default async function TransactionsPage() {
             </div>
             <button
               type="submit"
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition"
+              disabled={adding}
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2"
             >
-              Add Transaction
+              {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Add Transaction'}
             </button>
           </form>
         </div>
 
-        {/* Transactions List */}
         <div className="lg:col-span-2">
           <TransactionList 
-            transactions={transactions || []} 
-            deleteAction={deleteTransaction} 
+            transactions={transactions} 
+            deleteAction={handleDeleteTransaction as any} 
           />
         </div>
       </div>
