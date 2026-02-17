@@ -96,7 +96,7 @@ export default function DashboardLayout({
             })}
           </nav>
 
-          <div className="mt-auto pt-6 border-t border-gray-100 dark:border-zinc-800">
+          <div className="mt-auto pt-6 border-t border-gray-100 dark:border-zinc-800 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="flex items-center gap-3 px-2 mb-6">
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md">
                 {user?.email?.[0].toUpperCase()}
