@@ -6,6 +6,7 @@ import { SettingsProvider } from "@/context/SettingsContext";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { usePathname, useRouter } from "next/navigation";
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,9 @@ export default function RootLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Notify native app that the web view is ready (critical for OTA updates)
+    CapacitorUpdater.notifyAppReady();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         router.push('/login');

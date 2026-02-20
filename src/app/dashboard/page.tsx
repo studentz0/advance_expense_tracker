@@ -10,102 +10,115 @@ import {
   Plus,
   ArrowRight,
   Receipt,
-  Clock
+  Clock,
+  WifiOff
 } from 'lucide-react'
 import Link from 'next/link'
 import OverviewChart from './_components/OverviewChart'
 import TrendChart from './_components/TrendChart'
 import SavingsGoalsWidget from './_components/SavingsGoalsWidget'
-import { processRecurringTransactionsClient } from '@/utils/finance-client'
+import { processRecurringTransactionsClient, refreshAppData } from '@/utils/finance-client'
+import { db } from '@/utils/db-local'
+import { Network } from '@capacitor/network'
 
 export default function DashboardPage() {
   const supabase = createClient()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<any>(null)
+  const [isOnline, setIsOnline] = useState(true)
+
+  async function loadLocalData() {
+    const transactions = await db.transactions.orderBy('date').reverse().limit(5).toArray()
+    const allTransactions = await db.transactions.toArray()
+    const goals = await db.goals.limit(2).toArray()
+    
+    // We'll simulate budgetStatus from local data for now or fetch it if online
+    // For simplicity in this demo, let's just calculate some basic stats
+    
+    const income = allTransactions
+      ?.filter((t: any) => t.type === 'income')
+      .reduce((acc: number, t: any) => acc + Number(t.amount), 0) || 0
+      
+    const expenses = allTransactions
+      ?.filter((t: any) => t.type === 'expense')
+      .reduce((acc: number, t: any) => acc + Number(t.amount), 0) || 0
+
+    // Aggregate category data
+    const categoryDataMap: any = {}
+    allTransactions
+      ?.filter((t: any) => t.type === 'expense')
+      .forEach((t: any) => {
+        const name = 'Expense' // simplified for offline local
+        if (!categoryDataMap[name]) {
+          categoryDataMap[name] = { name, value: 0, color: '#94a3b8' }
+        }
+        categoryDataMap[name].value += Number(t.amount)
+      })
+    const chartData = Object.values(categoryDataMap).sort((a: any, b: any) => b.value - a.value).slice(0, 5)
+
+    // Aggregate monthly data
+    const monthlyDataMap: any = {}
+    allTransactions?.forEach((t: any) => {
+      const month = new Date(t.date).toLocaleString('en-US', { month: 'short' })
+      if (!monthlyDataMap[month]) monthlyDataMap[month] = { month, income: 0, expenses: 0 }
+      if (t.type === 'income') monthlyDataMap[month].income += Number(t.amount)
+      else monthlyDataMap[month].expenses += Number(t.amount)
+    })
+    const trendData = Object.values(monthlyDataMap).slice(-6)
+
+    setData({
+      transactions,
+      goals,
+      income,
+      expenses,
+      balance: income - expenses,
+      chartData,
+      trendData,
+      budgetStatus: [] // Simplified for now
+    })
+    setLoading(false)
+  }
 
   useEffect(() => {
-    async function fetchData() {
+    async function init() {
+      const status = await Network.getStatus()
+      setIsOnline(status.connected)
+
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/login')
         return
       }
 
-      // Process recurring
-      await processRecurringTransactionsClient()
+      // 1. Load what we have locally first (Instant)
+      await loadLocalData()
 
-      // Fetch summary data
-      const { data: transactions } = await supabase
-        .from('transactions')
-        .select('*, categories(name, icon, color)')
-        .order('date', { ascending: false })
-        .limit(5)
-
-      const { data: budgetStatus } = await supabase
-        .from('budget_status')
-        .select('*')
-        .limit(3)
-
-      const { data: goals } = await supabase
-        .from('savings_goals')
-        .select('*')
-        .eq('user_id', user.id)
-        .limit(2)
-
-      const { data: allTransactionsRaw } = await supabase
-        .from('transactions')
-        .select('amount, type, date, categories(name, color)')
-
-      const allTransactions = allTransactionsRaw || []
-      const income = allTransactions
-        ?.filter((t: any) => t.type === 'income')
-        .reduce((acc: number, t: any) => acc + Number(t.amount), 0) || 0
-        
-      const expenses = allTransactions
-        ?.filter((t: any) => t.type === 'expense')
-        .reduce((acc: number, t: any) => acc + Number(t.amount), 0) || 0
-
-      // Aggregate category data
-      const categoryDataMap: any = {}
-      allTransactions
-        ?.filter((t: any) => t.type === 'expense')
-        .forEach((t: any) => {
-          const name = t.categories?.name || 'Uncategorized'
-          if (!categoryDataMap[name]) {
-            categoryDataMap[name] = { name, value: 0, color: t.categories?.color || '#94a3b8' }
-          }
-          categoryDataMap[name].value += Number(t.amount)
-        })
-      const chartData = Object.values(categoryDataMap).sort((a: any, b: any) => b.value - a.value).slice(0, 5)
-
-      // Aggregate monthly data
-      const monthlyDataMap: any = {}
-      allTransactions?.forEach((t: any) => {
-        const month = new Date(t.date).toLocaleString('en-US', { month: 'short' })
-        if (!monthlyDataMap[month]) monthlyDataMap[month] = { month, income: 0, expenses: 0 }
-        if (t.type === 'income') monthlyDataMap[month].income += Number(t.amount)
-        else monthlyDataMap[month].expenses += Number(t.amount)
-      })
-      const trendData = Object.values(monthlyDataMap).slice(-6)
-
-      setData({
-        transactions,
-        budgetStatus,
-        goals,
-        income,
-        expenses,
-        balance: income - expenses,
-        chartData,
-        trendData
-      })
-      setLoading(false)
+      // 2. If online, sync from Supabase then reload local
+      if (status.connected) {
+        await refreshAppData()
+        await processRecurringTransactionsClient()
+        await loadLocalData()
+      }
     }
 
-    fetchData()
+    init()
+
+    let listener: any = null
+    const setupListener = async () => {
+      listener = await Network.addListener('networkStatusChange', status => {
+        setIsOnline(status.connected)
+        if (status.connected) refreshAppData().then(loadLocalData)
+      })
+    }
+    setupListener()
+
+    return () => { 
+      if (listener) listener.remove() 
+    }
   }, [])
 
-  if (loading) return <div className="p-8 text-center">Loading dashboard...</div>
+  if (loading) return <div className="p-8 text-center">Loading...</div>
 
   const stats = [
     { label: 'Total Balance', amount: data.balance, icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
@@ -115,6 +128,13 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {!isOnline && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 p-3 rounded-xl flex items-center gap-3 text-amber-700 dark:text-amber-400 text-sm font-medium animate-pulse">
+          <WifiOff className="w-4 h-4" />
+          Offline Mode: Using local data. Changes will sync when online.
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Overview</h1>
@@ -167,20 +187,22 @@ export default function DashboardPage() {
                 <div className="divide-y divide-gray-100 dark:divide-zinc-800">
                   {data.transactions.map((t: any) => (
                     <div key={t.id} className="p-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition">
-                      <div 
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm"
-                        style={{ backgroundColor: t.categories?.color || '#3b82f6' }}
-                      >
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 text-blue-600">
                         {t.type === 'income' ? <ArrowUpCircle className="w-5 h-5" /> : <ArrowDownCircle className="w-5 h-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                          {t.description || t.categories?.name || 'No description'}
+                          {t.description || 'No description'}
                         </p>
                         <p className="text-xs text-gray-500">{new Date(t.date).toLocaleDateString('en-US')}</p>
                       </div>
-                      <div className={`text-sm font-bold ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                        {t.type === 'income' ? '+' : '-'}${Number(t.amount).toLocaleString()}
+                      <div className="flex flex-col items-end gap-1">
+                        <div className={`text-sm font-bold ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                          {t.type === 'income' ? '+' : '-'}${Number(t.amount).toLocaleString()}
+                        </div>
+                        {t.sync_status === 'pending' && (
+                          <span className="text-[8px] font-bold text-amber-500 uppercase tracking-tighter">Pending Sync</span>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -205,34 +227,6 @@ export default function DashboardPage() {
                 No data to display
               </div>
             )}
-          </div>
-
-          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm">
-            <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-sm uppercase tracking-wider">Budget Status</h3>
-            <div className="space-y-4">
-              {data.budgetStatus && data.budgetStatus.length > 0 ? (
-                data.budgetStatus.map((budget: any) => (
-                  <div key={budget.id} className="space-y-2">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-gray-700 dark:text-zinc-300">{budget.category_name}</span>
-                      <span className="text-gray-500">${Math.round(budget.spent_amount)} / ${Math.round(budget.limit_amount)}</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full transition-all duration-500 ${budget.progress_percentage > 100 ? 'bg-red-500' : 'bg-blue-600'}`}
-                        style={{ width: `${Math.min(budget.progress_percentage, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-4">
-                  <Link href="/dashboard/budgets" className="text-xs text-blue-600 font-medium hover:underline">
-                    Set up your first budget limit →
-                  </Link>
-                </div>
-              )}
-            </div>
           </div>
 
           <SavingsGoalsWidget goals={data.goals} />

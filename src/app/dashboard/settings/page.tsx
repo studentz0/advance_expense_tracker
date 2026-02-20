@@ -1,10 +1,37 @@
 'use client'
 
 import { useSettings } from '@/context/SettingsContext'
-import { Settings as SettingsIcon, Bell, Moon, Sun, Globe, Shield, Wallet } from 'lucide-react'
+import { Settings as SettingsIcon, Bell, Moon, Sun, Globe, Shield, Wallet, CloudDownload, Info } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { CapacitorUpdater } from '@capgo/capacitor-updater'
 
 export default function SettingsPage() {
   const { currency, setCurrency } = useSettings()
+  const [version, setVersion] = useState('1.0.0')
+  const [checkingUpdate, setCheckingUpdate] = useState(false)
+
+  useEffect(() => {
+    async function getVersion() {
+      const info = await CapacitorUpdater.getLatest()
+      if (info?.version) setVersion(info.version)
+    }
+    getVersion()
+  }, [])
+
+  const handleManualUpdate = async () => {
+    setCheckingUpdate(true)
+    try {
+      // This will trigger the auto-update logic manually
+      await CapacitorUpdater.download({
+        url: 'https://api.capgo.app/download', // You would replace this with your actual bundle URL
+        version: 'next'
+      })
+      alert('Update downloaded! It will be applied on next restart.')
+    } catch (e) {
+      alert('No updates found or error checking for updates.')
+    }
+    setCheckingUpdate(false)
+  }
 
   return (
     <div className="space-y-8">
@@ -79,6 +106,29 @@ export default function SettingsPage() {
               <button className="w-full py-2.5 px-4 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 font-semibold rounded-xl border border-gray-200 dark:border-zinc-700 transition text-left text-sm">
                 Enable Two-Factor Authentication
               </button>
+            </div>
+          </div>
+
+          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm">
+            <h2 className="text-lg font-bold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
+              <Info className="w-5 h-5 text-blue-600" />
+              App Version
+            </h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-sm text-gray-900 dark:text-white">Current Version</p>
+                  <p className="text-xs text-gray-500">v{version}</p>
+                </div>
+                <button 
+                  onClick={handleManualUpdate}
+                  disabled={checkingUpdate}
+                  className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition disabled:opacity-50 flex items-center gap-2"
+                >
+                  <CloudDownload className={`w-3 h-3 ${checkingUpdate ? 'animate-bounce' : ''}`} />
+                  {checkingUpdate ? 'Checking...' : 'Check for Updates'}
+                </button>
+              </div>
             </div>
           </div>
 

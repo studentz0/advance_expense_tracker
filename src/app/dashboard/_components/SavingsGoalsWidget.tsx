@@ -9,6 +9,7 @@ interface Goal {
   target_amount: number
   current_amount: number
   color: string
+  sync_status?: string
 }
 
 export default function SavingsGoalsWidget({ goals }: { goals: Goal[] }) {
@@ -31,7 +32,12 @@ export default function SavingsGoalsWidget({ goals }: { goals: Goal[] }) {
             return (
               <div key={goal.id} className="space-y-2">
                 <div className="flex justify-between text-xs font-medium">
-                  <span className="text-gray-700 dark:text-zinc-300">{goal.name}</span>
+                  <div className="flex flex-col">
+                    <span className="text-gray-700 dark:text-zinc-300">{goal.name}</span>
+                    {goal.sync_status === 'pending' && (
+                      <span className="text-[8px] text-amber-500 font-bold uppercase tracking-tighter">Syncing...</span>
+                    )}
+                  </div>
                   <span className="text-gray-500">${goal.current_amount} / ${goal.target_amount}</span>
                 </div>
                 <div className="w-full h-2 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">

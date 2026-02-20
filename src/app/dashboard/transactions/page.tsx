@@ -1,10 +1,13 @@
 'use client'
 
 import { createClient } from '@/utils/supabase/client'
-import { Plus, Loader2 } from 'lucide-react'
+import { Plus, Loader2, WifiOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import TransactionList from './_components/TransactionList'
 import ExportButton from './_components/ExportButton'
+import { addTransactionClient, refreshAppData } from '@/utils/finance-client'
+import { db } from '@/utils/db-local'
+import { Network } from '@capacitor/network'
 
 export default function TransactionsPage() {
   const supabase = createClient()
@@ -12,25 +15,43 @@ export default function TransactionsPage() {
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
+  const [isOnline, setIsOnline] = useState(true)
 
-  async function fetchData() {
-    const { data: trans } = await supabase
-      .from('transactions')
-      .select('*, categories(name, icon, color)')
-      .order('date', { ascending: false })
-
-    const { data: cats } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name')
-
-    setTransactions(trans || [])
-    setCategories(cats || [])
+  async function loadLocalData() {
+    const trans = await db.transactions.orderBy('date').reverse().toArray()
+    const cats = await db.categories.orderBy('name').toArray()
+    setTransactions(trans)
+    setCategories(cats)
     setLoading(false)
   }
 
   useEffect(() => {
-    fetchData()
+    async function init() {
+      const status = await Network.getStatus()
+      setIsOnline(status.connected)
+      
+      await loadLocalData()
+      
+      if (status.connected) {
+        await refreshAppData()
+        await loadLocalData()
+      }
+    }
+    
+    init()
+
+    let listener: any = null
+    const setupListener = async () => {
+      listener = await Network.addListener('networkStatusChange', status => {
+        setIsOnline(status.connected)
+        if (status.connected) refreshAppData().then(loadLocalData)
+      })
+    }
+    setupListener()
+
+    return () => { 
+      if (listener) listener.remove() 
+    }
   }, [])
 
   async function handleAddTransaction(e: React.FormEvent<HTMLFormElement>) {
@@ -38,65 +59,33 @@ export default function TransactionsPage() {
     setAdding(true)
     const formData = new FormData(e.currentTarget)
     
-    const amount = formData.get('amount')
-    const description = formData.get('description') as string
-    const category_id = formData.get('category_id') as string
-    const date = formData.get('date') as string
-    const type = formData.get('type') as 'income' | 'expense'
-    const receiptFile = formData.get('receipt') as File
-    
-    const { data: { user } } = await supabase.auth.getUser()
+    const data = {
+      amount: Number(formData.get('amount')),
+      description: formData.get('description'),
+      category_id: formData.get('category_id'),
+      date: formData.get('date'),
+      type: formData.get('type')
+    }
 
-    if (user) {
-      let receipt_url = null
-
-      if (receiptFile && receiptFile.size > 0) {
-        const fileExt = receiptFile.name.split('.').pop()
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`
-        
-        const { error: uploadError } = await supabase.storage
-          .from('receipts')
-          .upload(fileName, receiptFile)
-
-        if (!uploadError) {
-          receipt_url = fileName
-        }
-      }
-
-      const { error } = await supabase.from('transactions').insert({
-        amount: Number(amount),
-        description,
-        category_id,
-        date,
-        type,
-        user_id: user.id,
-        receipt_url
-      })
-      
-      if (!error) {
-        fetchData()
-        e.currentTarget.reset()
-      }
+    const res = await addTransactionClient(data)
+    if (res.success) {
+      loadLocalData()
+      e.currentTarget.reset()
     }
     setAdding(false)
-  }
-
-  async function handleDeleteTransaction(formData: FormData) {
-    const id = formData.get('id') as string
-    const { error } = await supabase
-      .from('transactions')
-      .delete()
-      .eq('id', id)
-
-    if (!error) {
-      fetchData()
-    }
   }
 
   if (loading) return <div className="p-8 text-center">Loading transactions...</div>
 
   return (
     <div className="space-y-8">
+      {!isOnline && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 p-3 rounded-xl flex items-center gap-3 text-amber-700 dark:text-amber-400 text-sm font-medium">
+          <WifiOff className="w-4 h-4" />
+          Offline: New transactions will sync when you're back online.
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Transactions</h1>
@@ -168,15 +157,6 @@ export default function TransactionsPage() {
                 className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5">Receipt (Optional)</label>
-              <input
-                name="receipt"
-                type="file"
-                accept="image/*,application/pdf"
-                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-sm file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
-            </div>
             <button
               type="submit"
               disabled={adding}
@@ -190,7 +170,7 @@ export default function TransactionsPage() {
         <div className="lg:col-span-2">
           <TransactionList 
             transactions={transactions} 
-            deleteAction={handleDeleteTransaction as any} 
+            deleteAction={() => {}} 
           />
         </div>
       </div>
