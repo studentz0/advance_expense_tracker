@@ -31,6 +31,7 @@
     "recharts": "^3.7.0"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capgo/cli": "^7.75.0",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
