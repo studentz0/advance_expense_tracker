@@ -39,19 +39,27 @@ export interface SyncItem {
   timestamp: number;
 }
 
+export interface NotificationLog {
+  id: string; // e.g. "budget-Food & Dining-2026-02-21"
+  type: string;
+  timestamp: number;
+}
+
 export class FinanceDB extends Dexie {
   categories!: Table<LocalCategory>;
   transactions!: Table<LocalTransaction>;
   goals!: Table<LocalGoal>;
   syncQueue!: Table<SyncItem>;
+  notificationLogs!: Table<NotificationLog>;
 
   constructor() {
     super('FinanceDB');
-    this.version(1).stores({
+    this.version(2).stores({
       categories: 'id, name, type',
       transactions: 'id, user_id, date, type, sync_status',
       goals: 'id, user_id, sync_status',
-      syncQueue: '++id, table, action, timestamp'
+      syncQueue: '++id, table, action, timestamp',
+      notificationLogs: 'id, type, timestamp'
     });
   }
 }

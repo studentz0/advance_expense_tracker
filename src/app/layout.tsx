@@ -35,14 +35,23 @@ export default function RootLayout({
         // Tell native side we are ready
         await CapacitorUpdater.notifyAppReady();
         
-        // Listen for new updates downloaded in background
-        const listener = await CapacitorUpdater.addListener('updateAvailable', async (result) => {
-          console.log('New update available:', result.bundle.version);
-          // Automatically swap to the new version on next restart or immediately
-          // For now, let's just notify the system we're ready to swap
+        // Listen for download completion
+        const listener = await CapacitorUpdater.addListener('downloadComplete', (result) => {
+          if (window.confirm(`New version ${result.bundle.version} is ready! Restart to apply?`)) {
+            CapacitorUpdater.reload();
+          }
         });
 
-        // Clean up listener
+        // Proactively check for updates
+        const update = await CapacitorUpdater.getLatest();
+        if (update && update.version) {
+          // Compare versions or just try to download (plugin handles compatibility)
+          await CapacitorUpdater.download({
+            url: update.url || '',
+            version: update.version
+          });
+        }
+
         return () => {
           if (listener) listener.remove();
         };

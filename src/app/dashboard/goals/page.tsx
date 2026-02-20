@@ -61,7 +61,7 @@ export default function GoalsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm h-fit">
           <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
-            <Plus className="w-5 h-5 text-blue-600" />
+            <Plus className="w-5 h-5 text-red-600" />
             New Goal
           </h2>
           <form onSubmit={handleAddGoal} className="space-y-4">
@@ -71,7 +71,7 @@ export default function GoalsPage() {
                 name="name"
                 required
                 placeholder="e.g. Emergency Fund"
-                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
               />
             </div>
             <div>
@@ -83,7 +83,7 @@ export default function GoalsPage() {
                   type="number"
                   required
                   placeholder="0.00"
-                  className="w-full pl-8 pr-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                  className="w-full pl-8 pr-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
                 />
               </div>
             </div>
@@ -92,13 +92,13 @@ export default function GoalsPage() {
               <input
                 name="deadline"
                 type="date"
-                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
               />
             </div>
             <button
               type="submit"
               disabled={adding}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-red-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-red-500/20 transition flex items-center justify-center gap-2"
             >
               {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Goal'}
             </button>
@@ -142,13 +142,13 @@ export default function GoalsPage() {
                     <div className="flex gap-2">
                       <button 
                         onClick={() => handleUpdateProgress(goal.id, 10)}
-                        className="flex-1 py-2 bg-gray-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-600 dark:text-zinc-400 hover:text-blue-600 font-semibold rounded-lg text-xs transition border border-gray-100 dark:border-zinc-700"
+                        className="flex-1 py-2 bg-gray-50 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-600 dark:text-zinc-400 hover:text-red-600 font-semibold rounded-lg text-xs transition border border-gray-100 dark:border-zinc-700"
                       >
                         Add $10
                       </button>
                       <button 
                         onClick={() => handleUpdateProgress(goal.id, 100)}
-                        className="flex-1 py-2 bg-gray-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-600 dark:text-zinc-400 hover:text-blue-600 font-semibold rounded-lg text-xs transition border border-gray-100 dark:border-zinc-700"
+                        className="flex-1 py-2 bg-gray-50 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-600 dark:text-zinc-400 hover:text-red-600 font-semibold rounded-lg text-xs transition border border-gray-100 dark:border-zinc-700"
                       >
                         Add $100
                       </button>

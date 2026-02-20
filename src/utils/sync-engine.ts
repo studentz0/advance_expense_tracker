@@ -59,37 +59,48 @@ export async function syncFromSupabase() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
-  // Sync Categories
-  const { data: categories } = await supabase.from('categories').select('*');
-  if (categories) {
-    await db.categories.clear();
-    await db.categories.bulkPut(categories);
-  }
+  try {
+    // Sync Categories
+    const { data: categories } = await supabase.from('categories').select('*');
+    if (categories) {
+      await db.categories.clear();
+      await db.categories.bulkPut(categories);
+    }
 
-  // Sync Transactions (Last 100 for offline view)
-  const { data: transactions } = await supabase
-    .from('transactions')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('date', { ascending: false })
-    .limit(100);
-  
-  if (transactions) {
-    const localTrans = transactions.map(t => ({ ...t, sync_status: 'synced' }));
-    await db.transactions.bulkPut(localTrans);
-  }
+    // Sync Transactions (Last 100 for offline view)
+    const { data: transactions } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('date', { ascending: false })
+      .limit(100);
+    
+    if (transactions) {
+      const localTrans = transactions.map(t => ({ ...t, sync_status: 'synced' }));
+      await db.transactions.bulkPut(localTrans);
+    }
 
-  // Sync Goals
-  const { data: goals } = await supabase.from('savings_goals').select('*').eq('user_id', user.id);
-  if (goals) {
-    const localGoals = goals.map(g => ({ ...g, sync_status: 'synced' }));
-    await db.goals.bulkPut(localGoals);
+    // Sync Goals
+    const { data: goals } = await supabase.from('savings_goals').select('*').eq('user_id', user.id);
+    if (goals) {
+      const localGoals = goals.map(g => ({ ...g, sync_status: 'synced' }));
+      await db.goals.bulkPut(localGoals);
+    }
+  } catch (e) {
+    console.error('Data sync failed:', e);
   }
 }
 
-// Initialize listener
+// Initialize listener for connectivity
 Network.addListener('networkStatusChange', status => {
   if (status.connected) {
     flushSyncQueue();
   }
 });
+
+// Periodic sync (every 5 minutes) when online
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    flushSyncQueue();
+  }, 1000 * 60 * 5);
+}

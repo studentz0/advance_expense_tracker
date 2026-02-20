@@ -133,7 +133,7 @@ export default function DashboardPage() {
   if (loading) return <div className="p-8 text-center">Loading...</div>
 
   const stats = [
-    { label: 'Total Balance', amount: data.balance, icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+    { label: 'Total Balance', amount: data.balance, icon: Wallet, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
     { label: 'Total Income', amount: data.income, icon: ArrowUpCircle, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
     { label: 'Total Expenses', amount: data.expenses, icon: ArrowDownCircle, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
   ]
@@ -154,7 +154,7 @@ export default function DashboardPage() {
         </div>
         <Link 
           href="/dashboard/transactions" 
-          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition w-fit"
+          className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-red-500/20 transition w-fit"
         >
           <Plus className="w-5 h-5" />
           <span>Add Transaction</span>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Transactions</h2>
-              <Link href="/dashboard/transactions" className="text-sm font-medium text-blue-600 hover:underline flex items-center gap-1">
+              <Link href="/dashboard/transactions" className="text-sm font-medium text-red-600 hover:underline flex items-center gap-1">
                 View All <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -199,7 +199,7 @@ export default function DashboardPage() {
                 <div className="divide-y divide-gray-100 dark:divide-zinc-800">
                   {data.transactions.map((t: any) => (
                     <div key={t.id} className="p-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 text-blue-600">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-50 dark:bg-red-900/20 text-red-600">
                         {t.type === 'income' ? <ArrowUpCircle className="w-5 h-5" /> : <ArrowDownCircle className="w-5 h-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -243,17 +243,17 @@ export default function DashboardPage() {
 
           <SavingsGoalsWidget goals={data.goals} />
 
-          <div className="p-6 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-lg shadow-blue-500/20 text-white">
+          <div className="p-6 bg-gradient-to-br from-red-600 to-red-800 rounded-2xl shadow-lg shadow-red-500/20 text-white">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-white/20 rounded-lg">
                 <Clock className="w-5 h-5 text-white" />
               </div>
               <h3 className="font-bold">Recurring</h3>
             </div>
-            <p className="text-sm text-blue-100 mb-4">Automate your regular bills and income.</p>
+            <p className="text-sm text-red-100 mb-4">Automate your regular bills and income.</p>
             <Link 
               href="/dashboard/recurring" 
-              className="block w-full py-2 bg-white text-blue-600 text-center font-bold rounded-xl text-sm hover:bg-blue-50 transition"
+              className="block w-full py-2 bg-white text-red-600 text-center font-bold rounded-xl text-sm hover:bg-red-50 transition"
             >
               Manage Schedules
             </Link>

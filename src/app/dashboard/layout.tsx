@@ -64,7 +64,7 @@ export default function DashboardLayout({
       `}>
         <div className="h-full flex flex-col p-6 pt-[calc(1.5rem+env(safe-area-inset-top))]">
           <Link href="/dashboard" className="flex items-center gap-3 mb-10 px-2">
-            <div className="w-10 h-10 relative overflow-hidden rounded-xl shadow-lg shadow-blue-500/20">
+            <div className="w-10 h-10 relative overflow-hidden rounded-xl shadow-lg shadow-red-500/20">
               <img 
                 src="/logo.png" 
                 alt="Logo" 
@@ -85,13 +85,13 @@ export default function DashboardLayout({
                   className={`
                     flex items-center justify-between px-4 py-3 rounded-xl transition-all group
                     ${isActive 
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 shadow-sm' 
+                      ? 'bg-red-50 dark:bg-red-900/20 text-red-600 shadow-sm' 
                       : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white'
                     }
                   `}
                 >
                   <div className="flex items-center gap-3">
-                    <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-blue-600' : 'group-hover:text-gray-900 dark:group-hover:text-white'}`} />
+                    <item.icon className={`w-5 h-5 transition-colors ${isActive ? 'text-red-600' : 'group-hover:text-gray-900 dark:group-hover:text-white'}`} />
                     <span className="font-semibold text-sm">{item.label}</span>
                   </div>
                   {isActive && <ChevronRight className="w-4 h-4" />}
@@ -102,7 +102,7 @@ export default function DashboardLayout({
 
           <div className="mt-auto pt-6 border-t border-gray-100 dark:border-zinc-800 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="flex items-center gap-3 px-2 mb-6">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-red-700 flex items-center justify-center text-white font-bold shadow-md">
                 {user?.email?.[0].toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">

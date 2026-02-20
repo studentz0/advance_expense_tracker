@@ -68,7 +68,7 @@ export default function BudgetsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm h-fit">
           <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
-            <Target className="w-5 h-5 text-blue-600" />
+            <Target className="w-5 h-5 text-red-600" />
             Set Budget
           </h2>
           <form onSubmit={handleSetBudget} className="space-y-4">
@@ -77,7 +77,7 @@ export default function BudgetsPage() {
               <select
                 name="category_id"
                 required
-                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
               >
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -94,14 +94,14 @@ export default function BudgetsPage() {
                   step="0.01"
                   required
                   placeholder="0.00"
-                  className="w-full pl-8 pr-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                  className="w-full pl-8 pr-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
                 />
               </div>
             </div>
             <button
               type="submit"
               disabled={saving}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-red-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-red-500/20 transition flex items-center justify-center gap-2"
             >
               {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Budget'}
             </button>
@@ -140,7 +140,7 @@ export default function BudgetsPage() {
                     
                     <div className="w-full h-3 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                       <div 
-                        className={`h-full transition-all duration-500 ${isOver ? 'bg-red-500' : 'bg-blue-600'}`}
+                        className={`h-full transition-all duration-500 ${isOver ? 'bg-red-500' : 'bg-red-600'}`}
                         style={{ width: `${Math.min(budget.progress_percentage, 100)}%` }}
                       />
                     </div>

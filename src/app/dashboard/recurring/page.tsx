@@ -74,7 +74,7 @@ export default function RecurringPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm h-fit">
           <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
-            <Plus className="w-5 h-5 text-blue-600" />
+            <Plus className="w-5 h-5 text-red-600" />
             New Schedule
           </h2>
           <form onSubmit={handleAddSchedule} className="space-y-4">
@@ -88,7 +88,7 @@ export default function RecurringPage() {
                   step="0.01"
                   required
                   placeholder="0.00"
-                  className="w-full pl-8 pr-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                  className="w-full pl-8 pr-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
                 />
               </div>
             </div>
@@ -98,7 +98,7 @@ export default function RecurringPage() {
                 name="description"
                 required
                 placeholder="e.g. Monthly Rent"
-                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -106,7 +106,7 @@ export default function RecurringPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5">Type</label>
                 <select
                   name="type"
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
                 >
                   <option value="expense">Expense</option>
                   <option value="income">Income</option>
@@ -116,7 +116,7 @@ export default function RecurringPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5">Frequency</label>
                 <select
                   name="frequency"
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
                 >
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
@@ -130,7 +130,7 @@ export default function RecurringPage() {
               <select
                 name="category_id"
                 required
-                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
               >
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -144,13 +144,13 @@ export default function RecurringPage() {
                 type="date"
                 required
                 defaultValue={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
               />
             </div>
             <button
               type="submit"
               disabled={adding}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-red-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-red-500/20 transition flex items-center justify-center gap-2"
             >
               {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Start Schedule'}
             </button>
@@ -177,7 +177,7 @@ export default function RecurringPage() {
                         <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                           {item.description}
                         </p>
-                        <span className="text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600">
+                        <span className="text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-red-50 dark:bg-red-900/20 text-red-600">
                           {item.frequency}
                         </span>
                       </div>

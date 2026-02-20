@@ -55,7 +55,7 @@ export default function TransactionList({
             placeholder="Search transactions..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition shadow-sm"
+            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition shadow-sm"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -63,7 +63,7 @@ export default function TransactionList({
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition shadow-sm"
+            className="px-4 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition shadow-sm"
           >
             <option value="all">All Types</option>
             <option value="expense">Expenses</option>
@@ -109,7 +109,7 @@ export default function TransactionList({
                       <span suppressHydrationWarning>{new Date(t.date).toLocaleDateString('en-US')}</span>
                     </div>
                     {t.receipt_url && (
-                      <div className="flex items-center gap-1 text-xs text-blue-500 font-medium">
+                      <div className="flex items-center gap-1 text-xs text-red-500 font-medium">
                         <FileText className="w-3 h-3" />
                         Has Receipt
                       </div>
@@ -200,7 +200,7 @@ export default function TransactionList({
                           href={getReceiptUrl(selectedTransaction.receipt_url)} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="mt-2 inline-flex items-center gap-1 text-blue-600 hover:underline text-sm"
+                          className="mt-2 inline-flex items-center gap-1 text-red-600 hover:underline text-sm"
                         >
                           View Receipt <ExternalLink className="w-4 h-4" />
                         </a>

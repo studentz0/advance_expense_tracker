@@ -17,7 +17,7 @@ export default function SavingsGoalsWidget({ goals }: { goals: Goal[] }) {
     <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <h3 className="font-bold text-gray-900 dark:text-white text-sm uppercase tracking-wider flex items-center gap-2">
-          <Target className="w-4 h-4 text-blue-600" />
+          <Target className="w-4 h-4 text-red-600" />
           Savings Goals
         </h3>
         <Link href="/dashboard/goals" className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition">
@@ -55,7 +55,7 @@ export default function SavingsGoalsWidget({ goals }: { goals: Goal[] }) {
         ) : (
           <div className="text-center py-4">
             <p className="text-xs text-gray-500 italic">No active goals</p>
-            <Link href="/dashboard/goals" className="text-xs text-blue-600 font-medium hover:underline mt-2 inline-block">
+            <Link href="/dashboard/goals" className="text-xs text-red-600 font-medium hover:underline mt-2 inline-block">
               Set your first goal →
             </Link>
           </div>
