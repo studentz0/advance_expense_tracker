@@ -64,8 +64,12 @@ export default function DashboardLayout({
       `}>
         <div className="h-full flex flex-col p-6 pt-[calc(1.5rem+env(safe-area-inset-top))]">
           <Link href="/dashboard" className="flex items-center gap-3 mb-10 px-2">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <LayoutDashboard className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 relative overflow-hidden rounded-xl shadow-lg shadow-blue-500/20">
+              <img 
+                src="/logo.png" 
+                alt="Logo" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">FinanceApp</span>
           </Link>
@@ -121,8 +125,12 @@ export default function DashboardLayout({
       <div className="flex-1 flex flex-col min-w-0 pb-[env(safe-area-inset-bottom)]">
         <header className="lg:hidden p-4 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800 sticky top-0 z-40">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 relative overflow-hidden rounded-lg">
+              <img 
+                src="/logo.png" 
+                alt="Logo" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <span className="font-bold text-gray-900 dark:text-white">FinanceApp</span>
           </Link>

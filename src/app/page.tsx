@@ -37,8 +37,12 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-white dark:bg-zinc-950">
       <header className="px-4 lg:px-6 h-20 flex items-center border-b border-gray-100 dark:border-zinc-900 sticky top-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md z-50">
         <Link className="flex items-center justify-center gap-2.5" href="#">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <BarChart3 className="h-6 w-6 text-white" />
+          <div className="w-10 h-10 relative overflow-hidden rounded-xl shadow-lg shadow-blue-500/20">
+            <img 
+              src="/logo.png" 
+              alt="Logo" 
+              className="w-full h-full object-cover"
+            />
           </div>
           <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">FinanceApp</span>
         </Link>

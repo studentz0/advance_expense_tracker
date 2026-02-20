@@ -14,14 +14,17 @@ import {
   WifiOff
 } from 'lucide-react'
 import Link from 'next/link'
+import { useSettings } from '@/context/SettingsContext'
 import OverviewChart from './_components/OverviewChart'
 import TrendChart from './_components/TrendChart'
 import SavingsGoalsWidget from './_components/SavingsGoalsWidget'
 import { processRecurringTransactionsClient, refreshAppData } from '@/utils/finance-client'
 import { db } from '@/utils/db-local'
 import { Network } from '@capacitor/network'
+import { sendBudgetAlert } from '@/utils/notifications'
 
 export default function DashboardPage() {
+  const { budgetAlerts } = useSettings()
   const supabase = createClient()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -33,8 +36,17 @@ export default function DashboardPage() {
     const allTransactions = await db.transactions.toArray()
     const goals = await db.goals.limit(2).toArray()
     
-    // We'll simulate budgetStatus from local data for now or fetch it if online
-    // For simplicity in this demo, let's just calculate some basic stats
+    // Fetch real budget status from local DB or simulate
+    const { data: budgetStatus } = await supabase.from('budget_status').select('*')
+    
+    // Trigger notifications if needed
+    if (budgetAlerts && budgetStatus) {
+      budgetStatus.forEach((budget: any) => {
+        if (budget.spent_amount > budget.limit_amount) {
+          sendBudgetAlert(budget.category_name, budget.spent_amount, budget.limit_amount)
+        }
+      })
+    }
     
     const income = allTransactions
       ?.filter((t: any) => t.type === 'income')

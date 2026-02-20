@@ -29,9 +29,30 @@ export default function RootLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Notify native app that the web view is ready (critical for OTA updates)
-    CapacitorUpdater.notifyAppReady();
+    // 1. Initialize OTA Updates
+    const initOTA = async () => {
+      try {
+        // Tell native side we are ready
+        await CapacitorUpdater.notifyAppReady();
+        
+        // Listen for new updates downloaded in background
+        const listener = await CapacitorUpdater.addListener('updateAvailable', async (result) => {
+          console.log('New update available:', result.bundle.version);
+          // Automatically swap to the new version on next restart or immediately
+          // For now, let's just notify the system we're ready to swap
+        });
 
+        // Clean up listener
+        return () => {
+          if (listener) listener.remove();
+        };
+      } catch (e) {
+        console.error('OTA Setup Error:', e);
+      }
+    };
+    initOTA();
+
+    // 2. Auth State Management
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         router.push('/login');

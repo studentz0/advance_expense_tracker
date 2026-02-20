@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sync": "npm run build && npx cap sync android",
+    "deploy": "npm run build && npx capgo bundle upload"
   },
   "dependencies": {
     "@capacitor/android": "^8.1.0",
@@ -15,6 +17,7 @@
     "@capacitor/core": "^8.1.0",
     "@capacitor/filesystem": "^8.1.2",
     "@capacitor/ios": "^8.1.0",
+    "@capacitor/local-notifications": "^8.0.1",
     "@capacitor/network": "^8.0.1",
     "@capacitor/preferences": "^8.0.1",
     "@capgo/capacitor-updater": "^8.43.8",
@@ -28,6 +31,7 @@
     "recharts": "^3.7.0"
   },
   "devDependencies": {
+    "@capgo/cli": "^7.75.0",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

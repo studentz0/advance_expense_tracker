@@ -6,7 +6,14 @@ import { useState, useEffect } from 'react'
 import { CapacitorUpdater } from '@capgo/capacitor-updater'
 
 export default function SettingsPage() {
-  const { currency, setCurrency } = useSettings()
+  const { 
+    currency, 
+    setCurrency, 
+    budgetAlerts, 
+    setBudgetAlerts, 
+    recurringReminders, 
+    setRecurringReminders 
+  } = useSettings()
   const [version, setVersion] = useState('1.0.0')
   const [checkingUpdate, setCheckingUpdate] = useState(false)
 
@@ -76,18 +83,24 @@ export default function SettingsPage() {
                   <p className="font-semibold text-sm text-gray-900 dark:text-white">Budget Alerts</p>
                   <p className="text-xs text-gray-500">Notify me when I exceed my limits</p>
                 </div>
-                <div className="w-10 h-6 bg-blue-600 rounded-full relative cursor-pointer">
-                  <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
-                </div>
+                <button 
+                  onClick={() => setBudgetAlerts(!budgetAlerts)}
+                  className={`w-10 h-6 rounded-full relative transition-colors ${budgetAlerts ? 'bg-blue-600' : 'bg-gray-200 dark:bg-zinc-700'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${budgetAlerts ? 'right-1' : 'left-1'}`} />
+                </button>
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-semibold text-sm text-gray-900 dark:text-white">Recurring Reminders</p>
                   <p className="text-xs text-gray-500">Reminder before a bill is due</p>
                 </div>
-                <div className="w-10 h-6 bg-gray-200 dark:bg-zinc-700 rounded-full relative cursor-pointer">
-                  <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
-                </div>
+                <button 
+                  onClick={() => setRecurringReminders(!recurringReminders)}
+                  className={`w-10 h-6 rounded-full relative transition-colors ${recurringReminders ? 'bg-blue-600' : 'bg-gray-200 dark:bg-zinc-700'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${recurringReminders ? 'right-1' : 'left-1'}`} />
+                </button>
               </div>
             </div>
           </div>
